@@ -1,6 +1,6 @@
 import json
 
-outpath = r"C:\Users\prabh\testMLflow\andor.json"
+outpath = "data/andor.json"
 data = {
     "title": "Andor",
     "review": (
