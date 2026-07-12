@@ -1,4 +1,4 @@
-'''
+"""
 We need to do this as the new ML flow version is not happy with this cachetools
 pip uninstall -y cachetools mlflow
 pip install cachetools==5.3.3 mlflow
@@ -6,14 +6,14 @@ pip install cachetools==5.3.3 mlflow
 
 See this for self hosting options
 https://mlflow.org/docs/latest/self-hosting/
-'''
+"""
 
 import mlflow
 import pandas as pd
 from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score
 
 
 mlflow.set_tracking_uri("http://localhost:5000")
@@ -30,13 +30,13 @@ with mlflow.start_run():
     print("✓ Successfully connected to MLflow!")
 
 
-
-
 # Load the Iris dataset
 X, y = datasets.load_iris(return_X_y=True)
 
 # Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 # Define the model hyperparameters
 params = {

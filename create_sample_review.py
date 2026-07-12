@@ -1,12 +1,11 @@
 import json
-import os
 
-outpath = r'C:\Users\prabh\testMLflow\andor.json'
+outpath = r"C:\Users\prabh\testMLflow\andor.json"
 data = {
     "title": "Andor",
     "review": (
         "In an era filled with danger, deception, and intrigue, Cassian Andor embarks on a path that is destined to turn him into a Rebel hero."
-    )
+    ),
 }
 
 # Create and write to the JSON file

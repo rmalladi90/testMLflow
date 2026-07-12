@@ -32,10 +32,28 @@ To create review paragraph and save it in JSON file
 
 Read the JSON file, use the trained model and print positve or negative review.
 
-#### Sample results 
+#### Sample results
 mlartifacts folder
 
+# Development
 
+```
+# Clone the repo and cd into the local repo dir
+git clone <repo> <dir>
+cd <dir>
+# Install all the dependencies into the virtual environment
+# and activate it
+uv sync --all-groups
+. .venv/bin/activate
+# Install git hook in local repo (in <dir>) to run
+# pre-commit checks on commit
+pre-commit install
+```
+
+## Deactivate Virtual Env
+```
+deactivate
+```
 
 
 
