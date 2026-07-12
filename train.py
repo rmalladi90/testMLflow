@@ -5,10 +5,10 @@ Training Sentiment Analysis on IMDB data
 # ignore warnings
 import warnings
 
+import keras
 import mlflow
 import mlflow.tensorflow
 import numpy as np
-import tensorflow
 import tensorflow as tf
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.datasets import imdb
@@ -28,7 +28,7 @@ warnings.filterwarnings("ignore")
 
 # Initialize the random number generator
 random_state = 42
-tensorflow.random.set_seed(random_state)
+tf.random.set_seed(random_state)
 
 print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
@@ -75,8 +75,8 @@ print(f"Active Experiment: {mlflow.get_experiment_by_name('TF Sentiment')}")
 Pre-processing
 The dataset we will be using for training is IMDB
 https://ai.stanford.edu/%7Eamaas/data/sentiment/
-For training purposes we will use the data from Tensorflow Keras 
-Details about this data: https://www.tensorflow.org/api_docs/python/tf/keras/datasets/imdb/load_data
+For training purposes we will use the data from Tensorflow Keras
+Details about this data: https://www.tensorflow.org/api_docs/python/keras/datasets/imdb/load_data
 1. Dataset of 25,000 movies reviews from IMDB
 2. Words are ranked by how often they occur (in the training set
 3. Of all the words we will be using only th 10000 most frequently used words for training. We can change this number if necessary.
@@ -105,7 +105,7 @@ X_train, X_valid, y_train, y_valid = train_test_split(
 Create model, define optimizer and fit the model
 I ran the model for 1 epoch. REcommended is upto 20 epochs. Change this to 20 when there is a GPU available.
 epochs = 1 # Num of epochs
-Change batch_size depending on the machine 
+Change batch_size depending on the machine
 batch_size = 1
 These are two parameters that a GPU can help with.
 """
@@ -115,10 +115,10 @@ model.summary()
 init_lr = 1e-4
 epochs = 1  # Num of epochs
 # Define a decay schedule
-lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+lr_schedule = keras.optimizers.schedules.ExponentialDecay(
     initial_learning_rate=init_lr, decay_steps=10000, decay_rate=0.96, staircase=True
 )
-opt = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+opt = keras.optimizers.Adam(learning_rate=lr_schedule)
 model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 batch_size = 1

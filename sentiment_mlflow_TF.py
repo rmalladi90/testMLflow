@@ -2,10 +2,10 @@
 import warnings
 from itertools import islice
 
+import keras
 import mlflow
 import mlflow.tensorflow
 import numpy as np
-import tensorflow
 import tensorflow as tf
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.datasets import imdb
@@ -25,7 +25,7 @@ warnings.filterwarnings("ignore")
 
 # Initialize the random number generator
 random_state = 42
-tensorflow.random.set_seed(random_state)
+tf.random.set_seed(random_state)
 
 print("Version: ", tf.__version__)
 print("Eager mode: ", tf.executing_eagerly())
@@ -120,10 +120,10 @@ model.summary()
 init_lr = 1e-4
 epochs = 1
 # Define a decay schedule
-lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+lr_schedule = keras.optimizers.schedules.ExponentialDecay(
     initial_learning_rate=init_lr, decay_steps=10000, decay_rate=0.96, staircase=True
 )
-opt = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+opt = keras.optimizers.Adam(learning_rate=lr_schedule)
 model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
 
 batch_size = 1
