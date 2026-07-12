@@ -1,0 +1,197 @@
+# Most of this is copy pasted from
+# https://github.com/mlflow/mlflow/tree/master/docker-compose
+volumes:
+  pgdata:
+  storage-data:
+
+services:
+  # Neat - we get to use a real DB instead of the deprecated file-system "DB"
+  # of 'mlartifacts' and 'mlruns' fame.
+  # Data is stored in pgdata volume - so just don't delete that :)
+  postgres:
+    image: postgres:18
+    container_name: mlflow-postgres
+    # All the env vars are sourced from the .env file by docker compose
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      PGPORT: ${PGPORT}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    ports:
+      - ${PGPORT}:${PGPORT}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -p ${PGPORT}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # AFAICT this is a local S3 equivalent that MLflow had in their docker-compose.yaml
+  # MLflow stores its artifacts here I'm guessing (PostgreSQL is for meta-data)
+  # Again the data is stored in a Docker volume separate from the containers or images
+  # So don't delete the storage-data volume and you're good
+  storage:
+    image: rustfs/rustfs:1.0.0-alpha.83
+    container_name: storage
+    environment:
+      RUSTFS_ADDRESS: :9000
+      RUSTFS_SERVER_DOMAINS: storage:9000
+      RUSTFS_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
+      RUSTFS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID:-s3admin}
+      RUSTFS_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY:-s3admin}
+      RUSTFS_CONSOLE_ENABLE: ${RUSTFS_CONSOLE_ENABLE:-true}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - storage-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", 'curl -s http://127.0.0.1:9000/health | grep -q ''"status":"ok"''']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Little script to make the "S3"/RustFS bucket MLflow is going to put its artifacts in
+  create-bucket:
+    image: amazon/aws-cli:2.33.25
+    container_name: mlflow-create-bucket
+    depends_on:
+      storage:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        set -e;
+        echo 'Waiting for S3 gateway getting ready...';
+        if aws --endpoint-url=${MLFLOW_S3_ENDPOINT_URL} s3api head-bucket --bucket ${S3_BUCKET} 2>/dev/null; then
+          echo 'Bucket ${S3_BUCKET} already exists. Skipping creation.';
+        else
+          echo 'Creating bucket ${S3_BUCKET}...';
+          aws --endpoint-url=${MLFLOW_S3_ENDPOINT_URL} s3api create-bucket --bucket ${S3_BUCKET} --region ${AWS_DEFAULT_REGION};
+        fi
+      "
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      AWS_S3_ADDRESSING_STYLE: path
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      S3_BUCKET: ${S3_BUCKET}
+    restart: "no"
+
+  # Actually run MLflow
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:${MLFLOW_VERSION}
+    container_name: mlflow-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      create-bucket:
+        condition: service_completed_successfully
+    environment:
+      # Had to add this particular env var
+      # All services _within_ a docker compose file can talk to each
+      # other through a special docker network using the service name in
+      # the YAML file as a hostname
+      # Since our training app wants to talk to MLflow and is defined in the
+      # same docker-compose.yaml file it can using "mlflow" as a hostname
+      # We - as users - also want to talk to the MLflow server via the browser
+      # GUI.  We don't have access to Dockers special network and special hostnames
+      # We use localhost.  Both needed to be added here or MLflow freaks out
+      # when it gets a request referring to it by the wrong host name
+      # Touchy
+      MLFLOW_SERVER_ALLOWED_HOSTS: mlflow:5000,localhost:5000
+      # Backend store URI built from vars
+      MLFLOW_BACKEND_STORE_URI: ${MLFLOW_BACKEND_STORE_URI}
+
+      # S3/RustFS settings
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      MLFLOW_ARTIFACTS_DESTINATION: ${MLFLOW_ARTIFACTS_DESTINATION}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      MLFLOW_S3_IGNORE_TLS: "true"
+
+      # Server host/port
+      MLFLOW_HOST: ${MLFLOW_HOST}
+      MLFLOW_PORT: ${MLFLOW_PORT}
+    command:
+      - /bin/bash
+      - -c
+      - |
+        pip install --no-cache-dir psycopg2-binary boto3
+        mlflow server \
+          --backend-store-uri "${MLFLOW_BACKEND_STORE_URI}" \
+          --artifacts-destination "${MLFLOW_ARTIFACTS_DESTINATION}" \
+          --serve-artifacts \
+          --host "${MLFLOW_HOST}" \
+          --port "${MLFLOW_PORT}"
+    # This is the actual bit that lets us talk to MLflow outside of
+    # Docker's special network on our normal localhost
+    # The other bit was just to keep MLflow from freaking out if we
+    # called it "localhost:5000" instead of "mlflow:5000"
+    ports:
+      - "${MLFLOW_PORT}:${MLFLOW_PORT}"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:${MLFLOW_PORT}/health')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  # Finally, our actual code gets to run
+  training:
+    # We don't use a pre-built image on Docker Hub so
+    # we need to specify our build.
+    # Translates to "docker build -f training.Dockerfile ."
+    build:
+      context: .
+      dockerfile: training.Dockerfile
+    # Our train.py script now looks for this env var to connect to
+    # MLflow correctly
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:${MLFLOW_PORT}"
+    # Does what it says - we can't start our script until MLflow
+    # service is up and healthy
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    # The very long-winded way in docker compose to add '--gpus=all'
+    # to a docker run command and let our app in its docker container have
+    # access to our GPUs
+    # Note: setup on the host is _also_ needed for this to actually work
+    # - The nvidia container toolkit needs to configure docker itself
+    # - The host needs a CUDA enabled nvidia driver (usually easiest to check
+    # by running nvidia-smi on the host)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+    # Docker compose is usually used for running long running services
+    # MLflow's webserver is an example.
+    # It usually starts up all the services in a docker-compose.yaml file with
+    # a single command: `docker compose up -d`
+    # We don't want to run training every time we want our MLflow server up
+    # So this keeps that from happening
+    # We can run our training using `docker compose run --rm training`
+    # (here "training" is actually the service name).  The profile could
+    # be anything - as long as it isn't the default one for our purposes.
+    profiles:
+      - training
+
+# That special Docker network that I was talking about earlier
+networks:
+  default:
+    name: mlflow-network
