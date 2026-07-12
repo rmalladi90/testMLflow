@@ -1,4 +1,3 @@
-import os
 from collections import Counter
 
 import mlflow
@@ -26,9 +25,8 @@ hyperparams = {
 mlflow.set_tracking_uri("http://localhost:5000")
 mlflow.set_experiment("IMDb_Sentiment_Analysis_PyTorch")
 
-inpath = r"C:\Users\prabh\testMLflow"
 # Load the IMDb reviews CSV file into a DataFrame
-df = pd.read_csv(os.path.join(inpath, "imdb_full.csv"))
+df = pd.read_csv("imdb_full.csv")
 
 # # --- STEP 2: MOCK IMDB DATASET GENERATION ---
 # # Simulating the structured Kaggle IMDb CSV format (review, sentiment)
