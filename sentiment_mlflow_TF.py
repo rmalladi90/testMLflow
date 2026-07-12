@@ -12,17 +12,17 @@ from itertools import islice
 import tensorflow
 from sklearn.model_selection import train_test_split
 
-from tensorflow.keras.datasets import imdb
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import (
+from keras.datasets import imdb
+from keras.models import Sequential
+from keras.layers import (
     Dense,
     Embedding,
     LSTM,
     TimeDistributed,
     Flatten,
 )
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.preprocessing.sequence import pad_sequences
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 
 
 import tensorflow as tf

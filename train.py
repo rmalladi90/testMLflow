@@ -1,10 +1,5 @@
 """
 Training Sentiment Analysis on IMDB data
-These pinned versions work together for training this model.
-protobuf==3.20.3
-mlflow==2.13.2
-tensorflow==2.16.1
-
 """
 
 import mlflow
@@ -13,17 +8,17 @@ import numpy as np
 import tensorflow
 from sklearn.model_selection import train_test_split
 
-from tensorflow.keras.datasets import imdb
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import (
+from keras.datasets import imdb
+from keras.models import Sequential
+from keras.layers import (
     Dense,
     Embedding,
     LSTM,
     TimeDistributed,
     Flatten,
 )
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.preprocessing.sequence import pad_sequences
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 
 
 import tensorflow as tf

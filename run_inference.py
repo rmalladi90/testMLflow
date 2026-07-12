@@ -1,11 +1,11 @@
 # Load the previously saved model
-from tensorflow.keras.models import load_model
-from tensorflow.keras.datasets import imdb
+from keras.models import load_model
+from keras.datasets import imdb
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+from keras.preprocessing.sequence import pad_sequences
 import tensorflow
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix

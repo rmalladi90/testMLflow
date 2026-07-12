@@ -4,7 +4,7 @@ https://www.tensorflow.org/api_docs/python/tf/keras/datasets/imdb/load_data
 """
 
 import pandas as pd
-from tensorflow.keras.datasets import imdb
+from keras.datasets import imdb
 import os
 
 

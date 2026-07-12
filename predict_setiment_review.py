@@ -1,9 +1,9 @@
 import json
 import string
 import os
-from tensorflow.keras.datasets import imdb
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.models import load_model
+from keras.datasets import imdb
+from keras.preprocessing.sequence import pad_sequences
+from keras.models import load_model
 import numpy as np
 import tensorflow
 
