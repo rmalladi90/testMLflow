@@ -2,29 +2,26 @@
 Training Sentiment Analysis on IMDB data
 """
 
+# ignore warnings
+import warnings
+
 import mlflow
 import mlflow.tensorflow
 import numpy as np
 import tensorflow
-from sklearn.model_selection import train_test_split
-
+import tensorflow as tf
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.datasets import imdb
-from keras.models import Sequential
 from keras.layers import (
+    LSTM,
     Dense,
     Embedding,
-    LSTM,
-    TimeDistributed,
     Flatten,
+    TimeDistributed,
 )
+from keras.models import Sequential
 from keras.preprocessing.sequence import pad_sequences
-from keras.callbacks import ModelCheckpoint, EarlyStopping
-
-
-import tensorflow as tf
-
-# ignore warnings
-import warnings
+from sklearn.model_selection import train_test_split
 
 warnings.filterwarnings("ignore")
 

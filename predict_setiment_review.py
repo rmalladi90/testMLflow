@@ -1,11 +1,12 @@
 import json
-import string
 import os
-from keras.datasets import imdb
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import load_model
+import string
+
 import numpy as np
 import tensorflow
+from keras.datasets import imdb
+from keras.models import load_model
+from keras.preprocessing.sequence import pad_sequences
 
 # Initialize the random number generator
 random_state = 42

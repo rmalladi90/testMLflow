@@ -3,10 +3,10 @@ https://ai.stanford.edu/%7Eamaas/data/sentiment/
 https://www.tensorflow.org/api_docs/python/tf/keras/datasets/imdb/load_data
 """
 
-import pandas as pd
-from keras.datasets import imdb
 import os
 
+import pandas as pd
+from keras.datasets import imdb
 
 # 1. Load the data
 (x_train, y_train), (x_test, y_test) = imdb.load_data()

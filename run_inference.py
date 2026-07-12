@@ -1,14 +1,15 @@
 # Load the previously saved model
-from keras.models import load_model
-from keras.datasets import imdb
 import os
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
-from keras.preprocessing.sequence import pad_sequences
 import tensorflow
-from sklearn.model_selection import train_test_split
+from keras.datasets import imdb
+from keras.models import load_model
+from keras.preprocessing.sequence import pad_sequences
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
 
 # Initialize the random number generator
 random_state = 42
