@@ -1,3 +1,4 @@
+import os
 from collections import Counter
 
 import mlflow
@@ -22,7 +23,9 @@ hyperparams = {
 }
 
 # Set the MLflow Experiment
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
+print(f"Using tracking URI '{TRACKING_URI}'")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("IMDb_Sentiment_Analysis_PyTorch")
 
 # Load the IMDb reviews CSV file into a DataFrame
@@ -117,6 +120,7 @@ class SentimentLSTM(nn.Module):
 
 # --- STEP 5: MLFLOW TRAINING LOOP ---
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f"Using device '{device}'")
 
 with mlflow.start_run():
     # Log parameters
