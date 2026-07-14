@@ -54,3 +54,5 @@ pre-commit install
 ```
 deactivate
 ```
+
+Use Legacy Formats (.pt / .pth) if you are actively training models, saving intermediate training epochs, or working purely within standard Python/PyTorch workflows.Use the PT2 Format (.pt2) if you are finalizing a model for production, optimizing for specialized inference backends (like TensorRT, AOT Inductor, or edge devices), or deploying in non-Python environments.
