@@ -17,7 +17,7 @@ hyperparams = {
     "embedding_dim": 64,
     "hidden_dim": 128,
     "batch_size": 1,
-    "epochs": 3,
+    "epochs": 10,
     "learning_rate": 0.001,
     "max_length": 300,
 }
@@ -137,8 +137,10 @@ with mlflow.start_run():
 
     # Run epochs
     for epoch in range(hyperparams["epochs"]):
+        print(f"working on epoch {epoch}")
         model.train()
         train_loss = 0.0
+        cnt = 0
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
@@ -147,6 +149,7 @@ with mlflow.start_run():
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * inputs.size(0)
+            cnt += 1
 
         epoch_train_loss = train_loss / len(train_loader.dataset)
 
@@ -177,7 +180,20 @@ with mlflow.start_run():
         print(
             f"Epoch {epoch + 1}/{hyperparams['epochs']} -> Val Loss: {epoch_val_loss:.4f}, Val Acc: {epoch_val_acc:.4f}"
         )
+    """
+    # Create a sample input tensor (adjust the shape and values to fit your model)
+    sample_input = torch.randn(1, *input_shape) 
 
+    # Pass it to your log_model or save_model function
+    mlflow.pytorch.log_model(
+        model, 
+        artifact_path="model", 
+        input_example=sample_input
+    )
+    """
     # Log the final optimized PyTorch model Artifact
-    mlflow.pytorch.log_model(model, "sentiment_lstm_model")
+    # serialization_format="legacy"
+    mlflow.pytorch.log_model(
+        model, "sentiment_lstm_model", serialization_format="pickle"
+    )
     print("Execution complete. Metrics and model saved to MLflow.")

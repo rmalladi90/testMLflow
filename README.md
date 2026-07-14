@@ -56,3 +56,22 @@ deactivate
 ```
 
 Use Legacy Formats (.pt / .pth) if you are actively training models, saving intermediate training epochs, or working purely within standard Python/PyTorch workflows.Use the PT2 Format (.pt2) if you are finalizing a model for production, optimizing for specialized inference backends (like TensorRT, AOT Inductor, or edge devices), or deploying in non-Python environments.
+
+## Run MLflow Server
+
+```
+docker compose up -d
+```
+
+## Run Training Job
+```
+docker compose run --rm training
+```
+This will start the MLflow server if it isn't already running.
+
+To pick up code changes sometimes you need to force a rebuild of the image.
+This should be quick if it is just a code change after the first time when the
+base images are installed
+```
+docker compose build training
+```
