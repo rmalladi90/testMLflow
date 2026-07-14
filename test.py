@@ -1,3 +1,4 @@
+import os
 from collections import Counter
 
 import mlflow
@@ -6,6 +7,7 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from mlflow.tracking import MlflowClient
 from torch.utils.data import DataLoader, TensorDataset
 
 # --- STEP 1: HYPERPARAMETERS & MLFLOW SETUP ---
@@ -20,8 +22,22 @@ hyperparams = {
 }
 
 # Set the MLflow Experiment
-# mlflow.set_tracking_uri("http://localhost:5000")
-# mlflow.set_experiment("IMDb_Sentiment_Analysis_PyTorch")
+TRACKING_URI = os.environ.get("MLFLOW_TRACKING_URI")
+print(f"Using tracking URI '{TRACKING_URI}'")
+mlflow.set_tracking_uri(TRACKING_URI)
+mlflow_client = MlflowClient()
+experiment_id = mlflow_client.get_experiment_by_name(
+    "IMDb_Sentiment_Analysis_PyTorch"
+).experiment_id
+runs = mlflow_client.search_runs(
+    experiment_ids=[experiment_id],
+    filter_string="status = 'FINISHED'",
+    max_results=1,
+    order_by=["attributes.start_time DESC"],
+)
+best_run_id = runs[0].info.run_id
+model_uri = f"runs:/{best_run_id}/sentiment_lstm_model"
+model = mlflow.pytorch.load_model(model_uri)
 
 # # Load the IMDb reviews CSV file into a DataFrame
 df = pd.read_csv("data/imdb_full.csv")
@@ -114,9 +130,6 @@ class SentimentLSTM(nn.Module):
 # define model architecture
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-
-model_uri = r"C:\Users\prabh\mlartifacts\432358080655368227\605559fbf1144807a8122715c23c2392\artifacts\sentiment_lstm_model"
-model = mlflow.pytorch.load_model(model_uri)
 
 # Set the model to evaluation mode for inference
 model.eval()

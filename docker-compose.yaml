@@ -190,6 +190,24 @@ services:
     # be anything - as long as it isn't the default one for our purposes.
     profiles:
       - training
+  test:
+    build:
+      context: .
+      dockerfile: training.Dockerfile
+    command: ["python", "test.py"]
+    environment:
+      MLFLOW_TRACKING_URI: "http://mlflow:${MLFLOW_PORT}"
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
 
 # That special Docker network that I was talking about earlier
 networks:
