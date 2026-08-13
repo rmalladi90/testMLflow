@@ -24,6 +24,10 @@ class VectorNormalization:
         x_std = np.where(x_std == 0.0, 1.0, x_std)
         z_norm = (self.x - x_mean) / x_std
         return z_norm
+    
+    def count_zero_pixels(self):
+        count = len(np.where(self.x == 0)[0])
+        return count
 
 ## formula
 #x_norm = (x - xmin)/ (xmax - xmin)
@@ -51,7 +55,7 @@ def z_norm(x:np.ndarray)-> np.ndarray:
 
 
 def main():
-    feat_vect = [[[1, 2], [10, 20]], [[2, 5], [10, 10]], [[12, 1]]]
+    feat_vect = [[[1, 0], [10, 20]], [[2, 5], [10, 0]], [[12, 1]]]
     feat_norm = [norm_matrix(f) for f in feat_vect if len(f) > 1] # list comprehension
     print(feat_norm)
     feat_znorm = [z_norm(f) for f in feat_vect if len(f)> 1]
@@ -60,6 +64,7 @@ def main():
     vect_norm = VectorNormalization(feat_vect)
     print(vect_norm.max_min_norm())
     print(vect_norm.zscore_norm())
+    print(vect_norm.count_zero_pixels())
 
 if __name__ == "__main__":
     main()
